@@ -1,0 +1,30 @@
+# ---- Base Node image ----
+FROM node:20 AS base
+WORKDIR /app
+COPY package*.json ./
+ 
+# ---- Dependencies ----
+FROM base AS deps
+RUN npm install
+ 
+# ---- Build (for production) ----
+FROM deps AS builder
+COPY . .
+RUN npm run build
+ 
+# ---- Production image ----
+FROM node:20 AS prod
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/package.json ./package.json
+EXPOSE 3000
+CMD ["npm", "start"]
+ 
+# ---- Development image ----
+FROM deps AS dev
+WORKDIR /app
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
