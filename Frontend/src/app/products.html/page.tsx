@@ -136,15 +136,44 @@ export default async function ProductList({ searchParams }: { searchParams: Prom
         >
           Prev
         </Link>
-        {Array.from({ length: totalPages }, (_, i) => (
-          <Link
-            key={i + 1}
-            href={`?page=${i + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}${category ? `&category=${encodeURIComponent(category)}` : ""}${sortKey ? `&sortKey=${encodeURIComponent(sortKey)}` : ""}`}
-            className={`px-3 py-1 rounded border ${page === i + 1 ? "bg-blue-600 text-white" : "hover:bg-indigo-50"}`}
-          >
-            {i + 1}
-          </Link>
-        ))}
+        {(() => {
+  const visiblePages: (number | string)[] = [];
+  const maxVisible = 5;
+  const half = Math.floor(maxVisible / 2);
+
+  const start = Math.max(1, page - half);
+  const end = Math.min(totalPages, start + maxVisible - 1);
+
+  if (start > 1) {
+    visiblePages.push(1);
+    if (start > 2) visiblePages.push("...");
+  }
+
+  for (let i = start; i <= end; i++) {
+    visiblePages.push(i);
+  }
+
+  if (end < totalPages) {
+    if (end < totalPages - 1) visiblePages.push("...");
+    visiblePages.push(totalPages);
+  }
+
+  return visiblePages.map((p, i) =>
+    typeof p === "number" ? (
+      <Link
+        key={i}
+        href={`?page=${p}${search ? `&search=${encodeURIComponent(search)}` : ""}${category ? `&category=${encodeURIComponent(category)}` : ""}${sortKey ? `&sortKey=${encodeURIComponent(sortKey)}` : ""}`}
+        className={`px-3 py-1 rounded border ${page === p ? "bg-blue-600 text-white" : "hover:bg-indigo-50"}`}
+      >
+        {p}
+      </Link>
+    ) : (
+      <span key={i} className="px-3 py-1 text-gray-500">
+        {p}
+      </span>
+    )
+  );
+})()}
         <Link
           href={`?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}${category ? `&category=${encodeURIComponent(category)}` : ""}${sortKey ? `&sortKey=${encodeURIComponent(sortKey)}` : ""}`}
           className={`px-3 py-1 rounded border ${page === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'hover:bg-indigo-50'}`}
